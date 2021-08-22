@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -29,7 +30,7 @@ void main() {
   });
 
   group('Data Repository Test', () {
-    group('Data Repository - Search Videos', () {
+    group('Search Videos', () {
       test('Search Video, and set pageToken if available', () async {
         when(mockDataSource.searchVideos(
                 query: anyNamed('query'),
@@ -63,11 +64,54 @@ void main() {
                 query: anyNamed('query'),
                 pageToken: argThat(isNull, named: 'pageToken')))
             .thenThrow(SearchResponseException);
-        try{
+        try {
           await dataRepository.searchVideos(query: 'dragon');
-        } catch(e){
+        } catch (e) {
           expect(e, SearchResponseException);
         }
+      });
+    });
+    group('Fetch Next Videos', () {
+      test(
+          'return List<SearchItems> and update token when called AFTER search videos ',
+          () async {
+        when(mockDataSource.searchVideos(
+                query: anyNamed('query'), pageToken: anyNamed('pageToken')))
+            .thenAnswer((_) async => searchResponse);
+        await dataRepository.searchVideos(
+            query: 'dragon'); // this will set the nextPageToken
+        final searchItems = await dataRepository.fetchMoreVideos();
+        expect(searchItems, searchResponse.items);
+        verifyInOrder([
+          verify(mockDataSource.searchVideos(
+              query: argThat(equals('dragon'), named: 'query'),
+              pageToken: argThat(isNull))),
+          verify(mockDataSource.searchVideos(
+              query: argThat(equals('dragon'), named: 'query'),
+              pageToken: argThat(equals(searchResponse.nextPageToken),
+                  named: 'pageToken')))
+        ]);
+      });
+      test(
+          'throw Exception if fetchMoreVideos called AFTER last Page already reached',
+          () async {
+        when(mockDataSource.searchVideos(
+                query: anyNamed('query'), pageToken: anyNamed('pageToken')))
+            .thenAnswer((_) async => searchResponseNoNextPage);
+        await dataRepository.searchVideos(query: 'dragon');
+        expect(dataRepository.fetchMoreVideos(),
+            throwsA(InvalidPageTokenException));
+      });
+
+      test(
+          'throw Exception if fetchMoreVideos called BEFORE search videos',
+          () async {
+        when(mockDataSource.searchVideos(
+                query: anyNamed('query'), pageToken: anyNamed('pageToken')))
+            .thenAnswer((_) async => searchResponse);
+        expect(dataRepository.fetchMoreVideos(),
+            throwsA(InvalidPageTokenException));
+        verifyNever(mockDataSource.searchVideos(query: anyNamed('query')));
       });
     });
   });
