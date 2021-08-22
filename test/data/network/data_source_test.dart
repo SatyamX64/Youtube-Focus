@@ -44,6 +44,7 @@ void main() {
       await dataSource.searchVideos(query: 'dragon', pageToken: '2345');
       await dataSource.searchVideos(query: 'cat videos');
       final capturedURIs = verify(mockClient.get(captureAny)).captured;
+      expect(capturedURIs.length, 3);
       expect(
           capturedURIs[0].toString(),
           allOf(

@@ -83,13 +83,13 @@ void main() {
         final searchItems = await dataRepository.fetchMoreVideos();
         expect(searchItems, searchResponse.items);
         verifyInOrder([
-          verify(mockDataSource.searchVideos(
+          mockDataSource.searchVideos(
               query: argThat(equals('dragon'), named: 'query'),
-              pageToken: argThat(isNull))),
-          verify(mockDataSource.searchVideos(
+              pageToken: argThat(isNull, named: 'pageToken')),
+          mockDataSource.searchVideos(
               query: argThat(equals('dragon'), named: 'query'),
               pageToken: argThat(equals(searchResponse.nextPageToken),
-                  named: 'pageToken')))
+                  named: 'pageToken'))
         ]);
       });
       test(
@@ -99,17 +99,16 @@ void main() {
                 query: anyNamed('query'), pageToken: anyNamed('pageToken')))
             .thenAnswer((_) async => searchResponseNoNextPage);
         await dataRepository.searchVideos(query: 'dragon');
-        expect(dataRepository.fetchMoreVideos(),
-            throwsA(InvalidPageTokenException));
+        expect(() async => await dataRepository.fetchMoreVideos(),
+            throwsA(isA<InvalidPageTokenException>()));
       });
 
-      test(
-          'throw Exception if fetchMoreVideos called BEFORE search videos',
+      test('throw Exception if fetchMoreVideos called BEFORE search videos',
           () async {
         when(mockDataSource.searchVideos(
                 query: anyNamed('query'), pageToken: anyNamed('pageToken')))
             .thenAnswer((_) async => searchResponse);
-        expect(dataRepository.fetchMoreVideos(),
+        expect(() async => await dataRepository.fetchMoreVideos(),
             throwsA(InvalidPageTokenException));
         verifyNever(mockDataSource.searchVideos(query: anyNamed('query')));
       });
