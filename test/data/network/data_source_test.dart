@@ -23,31 +23,31 @@ void main() {
   String fixture(String data) =>
       File('test/data/fixtures/$data.json').readAsStringSync();
   group('Data Source Test', () {
-    test('Search Videos', () {
+    test('Search Videos', () async {
       when(mockClient.get(any)).thenAnswer(
           (_) async => http.Response(fixture('search_response'), 200));
-      var searchResponse = dataSource.searchVideos(query: 'abcd');
+      var searchResponse = await dataSource.searchVideos(query: 'abcd');
       expect(
           searchResponse, SearchResponse.fromJson(fixture('search_response')));
     });
-    test('Search Videos - Error (Throw SearchResponseException)', () {
+    test('Search Videos - Error (Throw SearchResponseException)', () async {
       when(mockClient.get(any)).thenAnswer(
           (_) async => http.Response(fixture('search_response_error'), 400));
       expect(dataSource.searchVideos(query: 'abcd'),
           throwsA(TypeMatcher<SearchResponseException>()));
     });
 
-    test('Search - Checks if Request made on correct URL', () {
+    test('Search - Checks if Request made on correct URL', () async {
       when(mockClient.get(any)).thenAnswer(
           (_) async => http.Response(fixture('search_response'), 200));
-      dataSource.searchVideos(query: 'abcd');
-      dataSource.searchVideos(query: 'dragon', pageToken: '2345');
-      dataSource.searchVideos(query: 'cat videos');
-
-      verifyInOrder([
-        mockClient.get(argThat(
+      await dataSource.searchVideos(query: 'abcd');
+      await dataSource.searchVideos(query: 'dragon', pageToken: '2345');
+      await dataSource.searchVideos(query: 'cat videos');
+      final capturedURIs = verify(mockClient.get(captureAny)).captured;
+      expect(
+          capturedURIs[0].toString(),
           allOf(
-            startsWith('https://www.googleapis.com/youtube/v3/search'),
+            startsWith('https://youtube.googleapis.com/youtube/v3/search'),
             contains('part=snippet'),
             contains('maxResults=5'),
             contains('q=abcd'),
@@ -55,21 +55,22 @@ void main() {
             contains('key=$API_KEY'),
             isNot(contains('pageToken')),
           ),
-        )),
-        mockClient.get(argThat(
+        );
+        expect(
+          capturedURIs[1].toString(),
           allOf(
-            startsWith('https://www.googleapis.com/youtube/v3/search'),
+            startsWith('https://youtube.googleapis.com/youtube/v3/search'),
             contains('q=dragon'),
             contains('pageToken=2345'),
           ),
-        )),
-        mockClient.get(argThat(
-          allOf(
-            startsWith('https://www.googleapis.com/youtube/v3/search'),
-            contains('q=cute%20videos'),
+        );
+        expect(
+          capturedURIs[2].toString(),
+           allOf(
+            startsWith('https://youtube.googleapis.com/youtube/v3/search'),
+            contains('q=cat%20videos'),
           ),
-        )),
-      ]);
+        );
     });
   });
 }

@@ -20,15 +20,19 @@ class _$SearchResponseSerializer
   Iterable<Object?> serialize(Serializers serializers, SearchResponse object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object?>[
-      'nextPageToken',
-      serializers.serialize(object.nextPageToken,
-          specifiedType: const FullType(String)),
       'items',
       serializers.serialize(object.items,
           specifiedType:
               const FullType(BuiltList, const [const FullType(SearchItem)])),
     ];
-
+    Object? value;
+    value = object.nextPageToken;
+    if (value != null) {
+      result
+        ..add('nextPageToken')
+        ..add(serializers.serialize(value,
+            specifiedType: const FullType(String)));
+    }
     return result;
   }
 
@@ -46,7 +50,7 @@ class _$SearchResponseSerializer
       switch (key) {
         case 'nextPageToken':
           result.nextPageToken = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+              specifiedType: const FullType(String)) as String?;
           break;
         case 'items':
           result.items.replace(serializers.deserialize(value,
@@ -63,17 +67,14 @@ class _$SearchResponseSerializer
 
 class _$SearchResponse extends SearchResponse {
   @override
-  final String nextPageToken;
+  final String? nextPageToken;
   @override
   final BuiltList<SearchItem> items;
 
   factory _$SearchResponse([void Function(SearchResponseBuilder)? updates]) =>
       (new SearchResponseBuilder()..update(updates)).build();
 
-  _$SearchResponse._({required this.nextPageToken, required this.items})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        nextPageToken, 'SearchResponse', 'nextPageToken');
+  _$SearchResponse._({this.nextPageToken, required this.items}) : super._() {
     BuiltValueNullFieldError.checkNotNull(items, 'SearchResponse', 'items');
   }
 
@@ -150,9 +151,7 @@ class SearchResponseBuilder
     try {
       _$result = _$v ??
           new _$SearchResponse._(
-              nextPageToken: BuiltValueNullFieldError.checkNotNull(
-                  nextPageToken, 'SearchResponse', 'nextPageToken'),
-              items: items.build());
+              nextPageToken: nextPageToken, items: items.build());
     } catch (_) {
       late String _$failedField;
       try {

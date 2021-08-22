@@ -12,7 +12,7 @@ part 'search_response.g.dart';
 
 abstract class SearchResponse
     implements Built<SearchResponse, SearchResponseBuilder> {
-  String get nextPageToken;
+  String? get nextPageToken;
   BuiltList<SearchItem> get items;
 
   SearchResponse._();
