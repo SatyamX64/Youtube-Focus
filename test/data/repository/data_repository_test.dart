@@ -80,7 +80,7 @@ void main() {
             .thenAnswer((_) async => searchResponse);
         await dataRepository.searchVideos(
             query: 'dragon'); // this will set the nextPageToken
-        final searchItems = await dataRepository.fetchMoreVideos();
+        final searchItems = await dataRepository.fetchNextPage();
         expect(searchItems, searchResponse.items);
         verifyInOrder([
           mockDataSource.searchVideos(
@@ -93,22 +93,22 @@ void main() {
         ]);
       });
       test(
-          'throw Exception if fetchMoreVideos called AFTER last Page already reached',
+          'throw Exception if fetchNextPage called AFTER last Page already reached',
           () async {
         when(mockDataSource.searchVideos(
                 query: anyNamed('query'), pageToken: anyNamed('pageToken')))
             .thenAnswer((_) async => searchResponseNoNextPage);
         await dataRepository.searchVideos(query: 'dragon');
-        expect(() async => await dataRepository.fetchMoreVideos(),
+        expect(() async => await dataRepository.fetchNextPage(),
             throwsA(isA<InvalidPageTokenException>()));
       });
 
-      test('throw Exception if fetchMoreVideos called BEFORE search videos',
+      test('throw Exception if fetchNextPage called BEFORE search videos',
           () async {
         when(mockDataSource.searchVideos(
                 query: anyNamed('query'), pageToken: anyNamed('pageToken')))
             .thenAnswer((_) async => searchResponse);
-        expect(() async => await dataRepository.fetchMoreVideos(),
+        expect(() async => await dataRepository.fetchNextPage(),
             throwsA(InvalidPageTokenException));
         verifyNever(mockDataSource.searchVideos(query: anyNamed('query')));
       });

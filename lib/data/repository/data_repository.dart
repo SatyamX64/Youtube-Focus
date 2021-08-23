@@ -28,12 +28,13 @@ class DataRepository {
     _lastSearchQuery = query;
   }
 
-  Future<BuiltList<SearchItem>> fetchMoreVideos() async {
+  Future<BuiltList<SearchItem>> fetchNextPage() async {
     if (_pageToken != null && _lastSearchQuery != null) {
       final nextPageSearchResponse = await dataSource.searchVideos(
           query: _lastSearchQuery!, pageToken: _pageToken!);
       _cacheValues(
-          query: _lastSearchQuery, pageToken: nextPageSearchResponse.nextPageToken);
+          query: _lastSearchQuery,
+          pageToken: nextPageSearchResponse.nextPageToken);
       return nextPageSearchResponse.items;
     } else {
       throw InvalidPageTokenException();
