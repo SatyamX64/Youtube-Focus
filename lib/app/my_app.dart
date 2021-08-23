@@ -17,6 +17,7 @@ class MyApp extends StatelessWidget {
       initialRoute: appConfig.initialRoute,
       title: appConfig.appName,
       onGenerateRoute: AppRouter.onGenerateRoute,
+      debugShowCheckedModeBanner: false,
     );
   }
 

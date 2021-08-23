@@ -1,5 +1,3 @@
-import 'dart:html';
-
 import 'package:flutter/cupertino.dart';
 
 // To send configs/dependencies from main.dart to MyApp 
